@@ -2,36 +2,44 @@ name: Chirag's Daily Commit
 
 on:
   schedule:
-    - cron: '6 7 * * *'  # Every day at midnight UTC to runs every 7-8 min set cron to '*/1 * * * *'
+    - cron: '30 18 * * *'  # Every day at 12:00 AM IST
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   commit:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
-      with:
-        ref: main 
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          ref: main
 
-    - name: Create file and commit
-      run: |
-        FILE="commit_number.md"
-        if [ ! -f "$FILE" ]; then
-          echo "Uploading Mark 24/7 project in git" > "$FILE"
-          echo "commit number: 1" >> "$FILE"
-        else
-          CURRENT_COUNT=$(grep -oP 'commit number: \K\d+' "$FILE")
-          if [ -z "$CURRENT_COUNT" ]; then
-            CURRENT_COUNT=0
+      - name: Create file and commit
+        run: |
+          FILE="commit_number.md"
+
+          if [ ! -f "$FILE" ]; then
+            echo "Uploading Mark 24/7 project in git" > "$FILE"
+            echo "commit number: 1" >> "$FILE"
+          else
+            CURRENT_COUNT=$(grep -oP 'commit number: \K\d+' "$FILE")
+
+            if [ -z "$CURRENT_COUNT" ]; then
+              CURRENT_COUNT=0
+            fi
+
+            NEXT_COUNT=$((CURRENT_COUNT + 1))
+
+            sed -i "/commit number: /c\commit number: $NEXT_COUNT" "$FILE"
           fi
-          NEXT_COUNT=$((CURRENT_COUNT + 1))
-          sed -i "/commit number: /c\commit number: $NEXT_COUNT" "$FILE"
-        fi
-        git config --global user.name "1nonlysho"
-        git config --global user.email "chiragduhan2006@gmail.com"
-        git add "$FILE"
-        git commit -m "Hello, updating the mark 24/7 "
-        git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/1nonlysho/mean-commit.git
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+          git config user.name "1nonlysho"
+          git config user.email "chiragduhan2006@gmail.com"
+
+          git add "$FILE"
+          git commit -m "chore: daily auto commit"
+          git push
